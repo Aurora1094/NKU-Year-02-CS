@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>D3可视化练习</title>
+  <style>
+    :root{--wrapw:1180px}
+    body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#fff;margin:0;}
+    .wrap{max-width:var(--wrapw);margin:24px auto;padding:0 16px;}
+    h1{font-size:22px;margin:8px 0 16px;}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start;}
+    @media(max-width:1080px){.grid{grid-template-columns:1fr}}
+    .panel{display:flex;flex-direction:column;gap:8px}
+    .title{font-size:18px;margin:0 0 4px 0}
+
+    .chart{display:block;margin:auto;background:transparent;width:100%;height:auto;}
+    .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;justify-content:center;}
+    .legend-item{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#555}
+    .swatch{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.15)}
+
+    .ring{fill:none;stroke:#999;stroke-opacity:.25;stroke-dasharray:3 6;}
+    .ring-label{fill:#6b7280;font-size:11px;opacity:.6;pointer-events:none;}
+    .sector-split{stroke:#9aa0aa;stroke-opacity:.35;stroke-dasharray:2 8;}
+    .edge-label{fill:#80848f;font-size:12px;}
+    .arc{stroke:#2a0b0b;stroke-width:2;stroke-linejoin:round;}
+    .center-dot{fill:#7f8799;}
+    .tooltip{
+      position: fixed; pointer-events:none; background:#fff; border:1px solid #e5e6eb;
+      border-radius:8px; padding:8px 10px; box-shadow:0 6px 20px rgba(0,0,0,.12);
+      font-size:12px; color:#1d2129; line-height:1.4; display:none; z-index:10;
+    }
+
+    @media (min-width:1080px){
+      .panel{ padding-right:32px; box-sizing:border-box; }
+    }
+
+    .legend-item.active { font-weight: 600; color:#222; }
+.legend-item.dim    { opacity: .35; }
+
+
+.series2-title {
+  margin-top: 60px; /* 想多一点就调大，比如 60px */
+}
+  </style>
+
+
+
+  <style>
+    svg { overflow: visible; }
+
+    .annotation line { shape-rendering: crispEdges; }
+    .annotation .annotation-label {
+       font-size: 20px;   /* 这里调大字号 */
+      font-weight: 600;
+      fill: #222;
+      paint-order: stroke;
+      stroke: #fff;
+      stroke-width: 3.5px;
+      stroke-linejoin: round;
+    }
+    .annotation circle { fill: #555; } /* 可选 */
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7" defer></script>
+  <script src="main.js" defer></script>
+</head>
+<body>
+  <div class="wrap">
+    <h1>系列1：App 使用情况</h1>
+
+    <!-- file:// 打开时的回退加载方式 -->
+    <div id="filepick" style="display:none;gap:12px;flex-wrap:wrap;margin:8px 0 16px;">
+      <label>小红书CSV：<input id="xhs-file" type="file" accept=".csv" /></label>
+      <label>微信CSV：<input id="wx-file" type="file" accept=".csv" /></label>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <h2 class="title">小红书 · 使用时段</h2>
+        <svg id="svg-xhs" class="chart"
+             viewBox="-450 -450 900 900"
+             preserveAspectRatio="xMidYMid meet"
+             aria-label="小红书 极坐标图"></svg>
+        <div id="legend-xhs" class="legend"></div>
+      </section>
+
+      <section class="panel">
+        <h2 class="title">微信 · 使用时段</h2>
+        <svg id="svg-wechat" class="chart"
+             viewBox="-450 -450 900 900"
+             preserveAspectRatio="xMidYMid meet"
+             aria-label="微信 极坐标图"></svg>
+        <div id="legend-wechat" class="legend"></div>
+      </section>
+    </div>
+
+   <h1 class="series2-title">系列2：图表重制(我们花时间陪伴了谁 【下滑查看】)</h1>
+
+
+
+
+  </div>
+  <div id="tooltip" class="tooltip"></div>
+</body>
+
+
+
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title></title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <!-- 可选：更好看的宋体风（联网可用） -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    html,body{margin:0;background:#fff;color:#111;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;line-height:1.5;}
+    .wrap{max-width:1120px;margin:24px auto;padding:0 16px;}
+    h2{margin:18px 0 10px;font-size:18px;font-weight:700}
+    section{margin-bottom:26px;}
+
+    :root{
+      --title-font: "Songti SC","Noto Serif SC","Source Han Serif SC",
+                    "STSong","SimSun","PMingLiU",serif;
+    }
+    /* 顶部大标题（两行） */
+    .page-title{
+      font-family:var(--title-font);
+      font-weight:700;
+      font-size: clamp(28px, 4.2vw, 44px);
+      line-height:1.22;
+      letter-spacing:.4px;
+      text-align:center;
+      margin:8px 0 18px;
+      white-space:pre-line;   /* 支持 \n 换行 */
+    }
+    .mid-title{
+      font-family:var(--title-font);
+      font-weight:600;
+      font-size: clamp(18px, 3vw, 24px);
+      letter-spacing:.3px;
+      margin:10px 0 8px;
+    }
+    .hero-title{
+      font-family: var(--title-font);
+      font-weight: 600;
+      font-size: clamp(22px, 3.2vw, 32px);
+      letter-spacing: 0.4px;
+      text-align: center;
+      margin: 8px 0 14px;
+    }
+
+    /* —— Stream —— */
+    #stream-legend{display:flex;flex-wrap:wrap;gap:10px 12px;margin-top:8px}
+    #stream-legend .item{
+      position:relative;display:inline-flex;align-items:center;gap:8px;
+      font-size:12px;color:#333;cursor:pointer;user-select:none;border:none;border-radius:999px;padding:6px 10px;
+      transition:transform .06s, opacity .12s;outline:none; -webkit-tap-highlight-color:transparent;
+    }
+    #stream-legend .item:hover{background:transparent;box-shadow:none}
+    #stream-legend .item:active{transform:translateY(1px)}
+    #stream-legend .item.off{opacity:.35}
+    .swatch{width:12px;height:12px;border-radius:3px;display:inline-block;box-shadow:none}
+
+    /* —— Sankey 卡片外观 —— */
+    .card{background:#fff;border-radius:20px;padding:16px 10px;box-shadow:0 10px 30px rgba(0,0,0,.06);}
+    .col-label{font-size:12px;fill:#444}
+    .link{fill:none;stroke-opacity:.55;transition:stroke-opacity .15s;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1;}
+    .link:hover{stroke-opacity:.82}
+    .node{fill-opacity:.95;stroke:none}
+
+    /* —— 两张图各自的 tooltip —— */
+    .tip{position:absolute;pointer-events:none;background:#fff;border:1px solid #ddd;
+         padding:8px 10px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.08);
+         font-size:12px;opacity:0;transition:opacity .12s;}
+
+    /* —— 更好看的桑基图例 —— */
+    #sankey-legend{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+      column-gap: 28px; row-gap: 14px; align-items:center; justify-items:start;
+      margin: 16px 6px 4px;
+    }
+    #sankey-legend .item{display:inline-flex;align-items:center;gap:8px;font-size:14px;line-height:1;color:#2f3b4b;white-space:nowrap;padding:4px 0;}
+    #sankey-legend .item .swatch{width:12px;height:12px;border-radius:3px;display:inline-block;flex:0 0 12px;}
+
+    /* —— 饼图布局 —— */
+    .pie-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+    .pie-card{border:1px solid #eee;border-radius:16px;padding:10px 8px}
+    .pie-title{font-family:var(--title-font);font-weight:600;font-size:16px;margin:6px 8px}
+    .center{display:flex;align-items:center;justify-content:center}
+    svg{display:block;width:100%;height:auto}
+
+
+    :root{
+  --title-font:"Songti SC","Noto Serif SC","Source Han Serif SC",
+               "STSong","SimSun","PMingLiU",serif;
+}
+.page-title{
+  font-family:var(--title-font);
+  font-weight:700;
+  font-size:clamp(28px,4.2vw,44px);
+  line-height:1.22;
+  letter-spacing:.4px;
+  text-align:left;        /* 左对齐 */
+  margin:8px 0 18px;
+}
+.page-title .subline{
+  display:block;
+  padding-left:2em;       /* 第二行缩进：调这里的 2em */
+  font-weight:600;
+}
+.ending-quote{
+  font-family: var(--title-font);
+  font-weight: 700;
+  font-size: clamp(32px, 6.4vw, 72px); /* 很大，随屏宽自适应 */
+  line-height: 1.15;
+  letter-spacing: .6px;
+  text-align: center;
+  margin: 42px 0 72px;
+  color: #111;
+}
+
+
+/* ==== 系列2 · 简洁饼图样式 ==== */
+
+/* 让 SVG 自适应容器宽度且不要太大 */
+.pie-svg {
+  width: 70%;          /* 比较小一点 */
+  max-width: 220px;    /* 上限 */
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* 扇区样式 */
+.pie-slice {
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.pie-slice.dimmed {
+  opacity: 0.15;
+}
+
+/* 图例：在饼图下面一条横排 */
+.pie-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #666;
+}
+.pie-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pie-legend-swatch {
+  width: 14px;
+  height: 6px;
+  border-radius: 999px;
+  background: #ccc;
+}
+
+/* 让每个饼图整体居中 */
+.pie-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.pie-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* 内容（饼图 + 图例）横向居中 */
+}
+
+/* 让 canvas 容器本身也是个居中容器 */
+.pie-wrap .center {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* SVG 本身不要太大，自动居中 */
+.pie-svg {
+  width: 70%;
+  max-width: 220px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+/* === 系列2 · 饼图布局 === */
+
+/* 整块饼图区域整体居中 */
+.pie-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.pie-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* 饼图 + 图例 居中 */
+}
+
+/* 饼图容器：上饼图，下图例 */
+.pie-wrap .center {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* SVG 自适应、不太大 */
+.pie-svg {
+  width: 70%;
+  max-width: 440px;   /* ⬅ 220 × 2，视觉上就放大 2 倍 */
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+
+/* 扇区样式 */
+.pie-slice {
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.pie-slice.dimmed {
+  opacity: 0.15;
+}
+
+/* 图例：一条横排在饼图正下方 */
+.pie-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #666;
+}
+.pie-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pie-legend-swatch {
+  width: 14px;
+  height: 6px;
+  border-radius: 999px;
+}
+
+/* 黑色气泡 tooltip（Chart.js 风格 + 下翻动画感） */
+#pie-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(0,0,0,0.9);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0;
+  transform: translate(-50%, -115%);      /* 初始略高一点 */
+  z-index: 1000;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  transition: opacity 0.18s ease-out,
+              transform 0.18s ease-out;   /* 关键：给它一个下滑的过渡 */
+}
+
+#pie-tooltip.visible {
+  opacity: 1;
+  transform: translate(-50%, -100%);      /* 往下滑一点，看起来像“翻”下来 */
+}
+
+#pie-tooltip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  transform: translateX(-50%);
+  border-width: 5px 5px 0 5px;
+  border-style: solid;
+  border-color: rgba(0,0,0,0.9) transparent transparent transparent;
+}
+
+
+.ending-line {
+  margin: 72px auto 40px;
+  text-align: center;
+  font-family: "宋体", "SimSun", "Songti SC", "STSong", serif; /* 多个宋体名字备用 */
+  font-size: 36px !important;   /* 用 !important 防止被其它 p 样式压住 */
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #222;
+}
+
+
+/* 任何紧跟在一个饼图区块后面的标题，上方都空一大段 */
+.pie-section + .hero-title {
+  margin-top: 140px;   /* 想多一点就改 60，少一点改 24 */
+}
+
+
+.hero-title-bottom {
+  margin-top: 140px;   /* 想要多少空白就写多少，比如 30/40/60px */
+}
+
+
+
+/* 专门控制标题下面这一块 section 的上边距 */
+#sankey-chart,
+#sankey-legend {
+  margin-top: 50px;  /* 想大一点就写 40、60 都行 */
+}
+
+
+
+/* ==== 系列2 · 翻页滚动（scroll-snap） ==== */
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+/* 系列2 的「翻页」容器 */
+.snap-container {
+  height: 100vh;          /* 占满一屏 */
+  overflow-y: auto;       /* 在自己内部滚动 */
+  scroll-behavior: smooth;
+
+  /* 隐藏滚动条 */
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* IE / Edge */
+}
+.snap-container::-webkit-scrollbar {
+  display: none;              /* Chrome / Safari */
+}
+
+/* 每一页：标题 + 一张图 */
+.snap-page {
+  min-height: 100vh;      /* 一页至少一屏高，可以比一屏多一点 */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;  /* 建议从上往下排，不要垂直居中 */
+  padding: 40px 0;             /* 上下留一点空 */
+}
+
+/* 标题和图之间的间距 */
+.snap-page .hero-title,
+.snap-page .page-title {
+  margin-bottom: 10px;
+}
+  </style>
+</head>
+<body>
+
+  <!-- ===== 饼图专用 tooltip（和 stream / sankey 分开） ===== -->
+  <div id="pie-tooltip"></div>
+    
+<main class="wrap">
+
+  <!-- 整个系列2 做成「翻页」容器 -->
+  <div class="snap-container">
+
+    <!-- Page 1：大标题 + 总占比饼图 -->
+    <section class="snap-page">
+      <h1 class="page-title">
+        「 关于时间<br>
+        <span class="subline">我们有很多问题 」</span>
+      </h1>
+
+
+
+      <section class="pie-section">
+        <div id="pie-overall" class="pie-wrap">
+          <div class="pie-inner">
+            <div class="pie-title"></div>
+            <div id="pie-overall-canvas" class="center" style="min-height:240px;"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Page 2：Q1 + 父母饼图 -->
+    <section class="snap-page">
+      <h3 class="hero-title">“这个假期你回家吗？”</h3>
+      <section class="pie-section">
+        <div id="pie-parents" class="pie-wrap">
+          <div class="pie-inner">
+            <div class="pie-title"></div>
+            <div id="pie-parents-canvas" class="center" style="min-height:220px;"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Page 3：Q2 + 第二张父母饼图 -->
+    <section class="snap-page">
+      <h3 class="hero-title">“来日方长还是去日苦多？”</h3>
+      <section class="pie-section">
+        <div id="pie-parents-2" class="pie-wrap">
+          <div class="pie-inner">
+            <div class="pie-title"></div>
+            <div id="pie-parents2-canvas" class="center" style="min-height:220px;"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Page 4：Q3 + 朋友饼图 -->
+    <section class="snap-page">
+      <h4 class="hero-title">“你为什么不能做先道歉的那个？”</h4>
+      <section class="pie-section">
+        <div id="pie-friends" class="pie-wrap">
+          <div class="pie-inner">
+            <div class="pie-title"></div>
+            <div id="pie-friends-canvas" class="center" style="min-height:220px;"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Page 5：Q4 + 情侣/配偶饼图 -->
+    <section class="snap-page">
+      <h5 class="hero-title">“你真的决定好和ta在一起吗？”</h5>
+      <section class="pie-section">
+        <div id="pie-couple" class="pie-wrap">
+          <div class="pie-inner" style="grid-column:1 / -1;">
+            <div class="pie-title"></div>
+            <div id="pie-couple-canvas" class="center" style="min-height:240px;"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Page 6：流图 -->
+    <section class="snap-page">
+      <h6 class="hero-title">“然而，真正重要的又是什么呢？”</h6>
+      <section>
+        <div id="stream-chart"></div>
+        <div id="stream-legend" aria-label="图例"></div>
+      </section>
+    </section>
+
+    <!-- Page 7：桑基 -->
+    <section class="snap-page">
+      <h6 class="hero-title">“那么，我们会如何浪费掉剩下的时间？”</h6>
+      <section>
+        <div id="sankey-chart"></div>
+        <div id="sankey-legend" class="legend"></div>
+      </section>
+    </section>
+
+  </div> <!-- /snap-container -->
+
+</main>
+
+
+
+  <!-- tooltips：流图 & 桑基，用你原来的 class="tip" -->
+  <div id="stream-tooltip" class="tip"></div>
+  <div id="sankey-tooltip" class="tip"></div>
+
+  <!-- 脚本：确保在 pies.js 之前已经引入 d3.v7（如果别处已经引过就不要重复） -->
+  <!-- <script src="https://d3js.org/d3.v7.min.js"></script> -->
+
+  <!-- 饼图（系列 2） -->
+  <script src="./pies.js"></script>
+  <!-- 流图 -->
+  <script src="./stream.js"></script>
+  <!-- 桑基图 -->
+  <script src="./sankey.js"></script>
+
+<!-- 翻页滚动脚本，写在这里 -->
+<!-- 翻页滚动脚本（新版） -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.querySelector('.snap-container');
+    if (!container) return;
+
+    const pages = Array.from(container.querySelectorAll('.snap-page'));
+    if (!pages.length) return;
+
+    let isScrolling = false;
+
+    // 计算“当前最靠近容器顶部的是第几页”
+    function getCurrentIndex() {
+      const containerRect = container.getBoundingClientRect();
+      let idx = 0;
+      let minDiff = Infinity;
+
+      pages.forEach((page, i) => {
+        const pageRect = page.getBoundingClientRect();
+        const diff = Math.abs(pageRect.top - containerRect.top);
+        if (diff < minDiff) {
+          minDiff = diff;
+          idx = i;
+        }
+      });
+
+      return idx;
+    }
+
+    // 滚到指定页，让它顶到容器顶部
+    function scrollToPage(index) {
+      if (index < 0 || index >= pages.length) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const pageRect = pages[index].getBoundingClientRect();
+      const diff = pageRect.top - containerRect.top;
+      const targetTop = container.scrollTop + diff;
+
+      isScrolling = true;
+      container.scrollTo({
+        top: targetTop,
+        behavior: 'smooth'
+      });
+
+      setTimeout(() => {
+        isScrolling = false;
+      }, 600); // 和滚动动画时间差不多
+    }
+
+    container.addEventListener('wheel', (e) => {
+      if (isScrolling) {
+        e.preventDefault();
+        return;
+      }
+
+      const delta = e.deltaY;
+
+      // ⭐ 每次滚之前，先根据实际位置算一遍当前页
+      const currentIndex = getCurrentIndex();
+      let targetIndex = currentIndex;
+
+      if (delta > 0 && currentIndex < pages.length - 1) {
+        targetIndex = currentIndex + 1;   // 向下：下一页
+      } else if (delta < 0 && currentIndex > 0) {
+        targetIndex = currentIndex - 1;   // 向上：上一页
+      }
+
+      if (targetIndex !== currentIndex) {
+        e.preventDefault(); // 真要翻页才拦截默认滚动
+        scrollToPage(targetIndex);
+      }
+      // 如果 targetIndex === currentIndex，就让浏览器自己处理滚动（几乎不会发生）
+    }, { passive: false });
+  });
+</script>
+
+
+  <!-- tooltips -->
+  <div id="stream-tooltip" class="tip"></div>
+  <div id="sankey-tooltip" class="tip"></div>
+  ...
+
+
+
+
+</body>
+</html>

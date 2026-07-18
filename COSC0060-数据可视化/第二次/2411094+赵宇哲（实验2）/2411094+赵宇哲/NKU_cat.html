@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>南开猫咪图鉴 | NKUer 的撸猫指南</title>
+  <meta name="description" content="南开猫咪图鉴——校园明星猫、猫猫出没点、相处指南与社区投稿。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --nk-orange:#ff7a00;
+      --nk-orange-600:#ff8e26;
+      --nk-orange-700:#ff6a00;
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --paper:#fffaf5;
+      --card:#ffffff;
+      --ring:rgba(255,122,0,.35);
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:"Noto Sans SC", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--ink); background:var(--paper);
+      scroll-behavior:smooth;
+    }
+    a{color:var(--nk-orange-700); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .container{max-width:1200px; margin:0 auto; padding:0 18px}
+
+    /* ——— 0) 入口：猫猫“3D”头 ——— */
+    .gate{position:relative; min-height:100svh; display:grid; place-items:center; overflow:hidden;}
+    .gate .bg-grad{ position:absolute; inset:0; 
+      background: radial-gradient(1200px 600px at 80% 10%, rgba(255,122,0,.08), transparent 60%),
+                  radial-gradient(900px 900px at 10% 90%, rgba(255,122,0,.12), transparent 52%),
+                  linear-gradient(180deg, #fff8ef 0%, #fff 60%, #fff 100%);
+      z-index:0; }
+    .gate-inner{position:relative; z-index:1; text-align:center}
+    .gate h1{font-family:"ZCOOL KuaiLe", system-ui; font-size:clamp(32px,6vw,64px); margin:10px 0 0}
+    .gate p{color:var(--muted); margin:8px 0 22px}
+    .enter-btn{display:inline-flex; align-items:center; gap:10px; padding:14px 20px; border-radius:999px; background:var(--nk-orange); color:#fff; font-weight:700; border:none; box-shadow:var(--shadow); cursor:pointer}
+    .enter-btn:active{transform:translateY(1px)}
+
+    .cat-3d{ width:min(520px, 80vw); aspect-ratio:1; margin:0 auto 12px; perspective:900px; filter:drop-shadow(0 18px 40px rgba(255,122,0,.18)); }
+
+    /* ——— 1) Hero —— 橙色猫猫图片背景（用SVG爪印叠加） ——— */
+    section{padding:70px 0}
+    .hero{position:relative; padding:86px 0; isolation:isolate}
+    .hero::before{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(255,122,0,.2), rgba(255,122,0,.12)); z-index:-1}
+    .paw-bg{position:absolute; inset:-10% -10% -20% -10%; opacity:.08; z-index:-2; pointer-events:none}
+    .hero h2{font-size:clamp(28px,5vw,48px); margin:0 0 6px; font-weight:900}
+    .hero p.sub{font-size:clamp(16px,3.2vw,24px); letter-spacing:.22em; color:#6b4b2f; margin:6px 0 0}
+
+    /* ——— 2) 校园明星猫：卡片（上图下文） —— */
+    .row-head{display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:12px}
+    .row-head h3{font-size:22px; margin:0}
+    .cat-card{background:var(--card); border-radius:18px; box-shadow:var(--shadow); overflow:hidden; position:relative; transform-style:preserve-3d; will-change:transform; transition:transform .45s cubic-bezier(.22,.61,.36,1), box-shadow .3s; display:flex; flex-direction:column}
+    .cat-card .img-wrap{position:relative; height:clamp(180px,22vw,260px); overflow:hidden; background:#f6f6f6}
+    .cat-card img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 35%; display:block; transition:transform .38s cubic-bezier(.22,.61,.36,1)}
+    .cat-card .info{background:#fff; border-top:1px solid #f2f2f2; padding:16px 18px 18px}
+    .cat-card .info h4{margin:0 0 8px; font-size:18px}
+    .cat-card .info p{margin:0; color:var(--muted); line-height:1.65}
+    .pill{display:inline-block; padding:4px 8px; background:#fff3ea; color:#a24b00; border-radius:999px; font-size:12px; margin-left:6px}
+
+    /* 箭头按钮 */
+    .arrow{position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%; background:#fff; border:none; box-shadow:var(--shadow); display:grid; place-items:center; cursor:pointer}
+    .arrow.left{left:-6px}
+    .arrow.right{right:-6px}
+
+    /* ——— 2.5) 校园明星猫：循环 Coverflow 轮播（中间偏大、灵动） ——— */
+    .carousel{position:relative}
+    .carousel-viewport{overflow-x:hidden; overflow-y:visible; padding:26px 0; perspective:1000px}
+    .carousel-track{display:flex; align-items:center; gap:14px; will-change:transform}
+    .slide{flex:0 0 clamp(260px,26vw,360px); transition:transform .38s cubic-bezier(.22,.61,.36,1), filter .38s; will-change:transform, filter}
+    .slide.is-center{
+      /* 只留高亮阴影（移除强制放大） */
+      filter:drop-shadow(0 14px 28px rgba(255,122,0,0.18));
+    }
+    .slide.is-center img{
+      transform:none;
+    }
+    .slide.is-center .cat-card{animation:floaty 3s ease-in-out infinite}
+    @keyframes floaty{0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+
+    /* ——— 3) 猫猫出没点：Canvas 词云 —— */
+    .map{background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:16px;}
+    #wordCloud{display:block; width:100%; height:420px; border-radius:12px; background:linear-gradient(180deg,#fff9f3,#fff)}
+    .map-tip{position:fixed; left:12px; bottom:12px; background:#fff; border-radius:14px; box-shadow:var(--shadow); padding:12px 14px; max-width:min(560px, 92vw); display:none}
+    .map-tip b{color:#7c2d12}
+
+    /* ——— 4) 相处指南 / 投喂守则 / 注意事项 ——— */
+    .grid{display:grid; gap:16px}
+    @media(min-width:900px){ .grid.cols-3{grid-template-columns:repeat(3,1fr)} }
+    .card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px}
+    .card h4{margin:0 0 10px; font-size:18px}
+    .list{margin:0; padding-left:18px}
+    .list li{margin:6px 0}
+
+    /* ——— 5) 投稿 & 组织介绍（左右分栏） ——— */
+    .split{display:grid; gap:18px}
+    @media(min-width:980px){ .split{grid-template-columns:1.2fr .8fr} }
+    form label{display:block; font-weight:600; margin:10px 0 6px}
+    .input, select, textarea{width:100%; padding:12px 14px; border:1.5px solid #f1e3d4; background:#fff; border-radius:14px; outline:none}
+    .input:focus, select:focus, textarea:focus{border-color:var(--nk-orange); box-shadow:0 0 0 6px var(--ring)}
+    textarea{min-height:120px; resize:vertical}
+    .btn{display:inline-flex; align-items:center; gap:8px; padding:12px 16px; border-radius:12px; background:var(--nk-orange); color:#fff; border:none; cursor:pointer; font-weight:700}
+    .btn:active{transform:translateY(1px)}
+    .muted{color:var(--muted)}
+
+    /* 其他 UI */
+    .section-title{display:flex; align-items:center; gap:10px; margin:0 0 10px}
+    .section-title .dot{width:10px; height:10px; border-radius:50%; background:var(--nk-orange)}
+    .toast{position:fixed; right:14px; bottom:14px; background:#111; color:#fff; padding:12px 14px; border-radius:12px; opacity:0; transform:translateY(10px); transition:all .2s ease}
+    .toast.show{opacity:1; transform:translateY(0)}
+    .top-btn{position:fixed; right:14px; bottom:70px; width:44px; height:44px; border-radius:999px; background:#fff; border:1px solid #eee; box-shadow:var(--shadow); display:grid; place-items:center; cursor:pointer}
+    .footer{padding:28px 0 56px; color:var(--muted); text-align:center}
+
+    @media (prefers-reduced-motion: reduce) {
+      .toast{transition:none}
+      .slide.is-center .cat-card{animation:none}
+    }
+
+    /* —— Gate 阶段：未进入前只显示首屏 —— */
+    body[data-stage="gate"]{overflow:hidden}
+    body[data-stage="gate"] section:not(#gate),
+    body[data-stage="gate"] footer,
+    body[data-stage="gate"] .top-btn{display:none !important}
+    .gate{cursor:pointer}
+    .gate.fade-out{animation:gateOut .5s ease forwards}
+    @keyframes gateOut{to{opacity:0; transform:scale(.98); pointer-events:none}}
+    .gate.hidden{display:none !important}
+
+/* 仅在“明星猫”区块把头部改为纵向居中排布 */
+#stars .row-head{
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+}
+#stars .row-head .section-title{ margin-bottom: 0; }
+#stars .row-head .auth-note{ margin-top: -2px; }
+
+
+
+/* ✅ 把你之前误写的 #map 改成 #spots（如果你保留这条，就顺手替换掉）*/
+#stars .row-head,
+#spots .row-head {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+}
+
+#spots .section-title {
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 10px;   /* 新增：标题与词云的间距 */
+}
+
+/* ✅ 放大两个标题（#stars 已有，这里补 #spots 的）*/
+#stars .section-title span:last-child,
+#spots .section-title span:last-child {
+  font-size: 1.9rem;
+  font-weight: 600;
+}
+
+/* 让“猫猫出没点”更靠近上面的图片（减小本分区顶部留白） */
+#spots {
+  padding-top:20px;              /* 默认是 70px，这里减小 */
+}
+
+/* 让标题和词云拉开距离（加大标题与下方容器的间距） */
+#spots .section-title {
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 30px;            /* 想更远可调到 40~48px */
+}
+
+/* 如果仍觉得和上方太远，可选：同时稍微减少上一块的底部留白 */
+#stars { 
+  padding-bottom: 12px;           /* 可选：原来是 70px */
+}
+
+
+/* 1) 相处指南标题：居中且与下方内容留同等间距（和 #spots 一样） */
+#guide .section-title{
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 30px;  /* 你现在 #spots 用的是 30px，这里保持一致 */
+}
+
+/* 2) 放大标题字号：把 #guide 也纳入现有组合选择器 */
+#stars .section-title span:last-child,
+#spots .section-title span:last-child,
+#guide  .section-title span:last-child{
+  font-size: 1.9rem;
+  font-weight: 600;
+}
+
+    /* 浮动光粒背景（新增） */
+    .particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;                 /* 位于内容下方、背景上方（必要时调整） */
+      mix-blend-mode: screen;
+      opacity: 0.9;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      will-change: transform, opacity;
+      filter: blur(6px);
+      mix-blend-mode: screen;
+      opacity: 0.9;
+      transform: translate3d(0,0,0);
+      animation-name: floatMove, pulseGlow;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+    }
+    @keyframes floatMove {
+      0%   { transform: translateY(0) translateX(0) scale(1); }
+      50%  { transform: translateY(-18vh) translateX(6vw) scale(1.08); }
+      100% { transform: translateY(0) translateX(0) scale(1); }
+    }
+    @keyframes pulseGlow {
+      0%   { opacity: 0.6; filter: blur(6px); }
+      50%  { opacity: 1;   filter: blur(10px); }
+      100% { opacity: 0.6; filter: blur(6px); }
+    }
+
+    /* 在减少动画偏好下禁用动画 */
+    @media (prefers-reduced-motion: reduce) {
+      .particle { animation: none !important; opacity: 0.7; }
+    }
+
+  </style>
+</head>
+<body data-stage="gate">
+  <!-- 浮动光粒背景（新增） -->
+  <div class="particles" id="particles" aria-hidden="true"></div>
+
+  <!-- 0) 入口：猫猫“3D”头（点击进入） -->
+  <section class="gate" id="gate" role="button" tabindex="0" aria-label="点击进入">
+    <div class="bg-grad" aria-hidden="true"></div>
+    <div class="gate-inner container">
+      <div class="cat-3d" aria-hidden="false">
+        <!-- 使用 <model-viewer> 提供 3D 交互（可360°旋转、缩放、AR）。
+             预览已临时加载“Fox”模型演示交互；交付时将 src 改为本地 ./assets/cat.glb 即可。 -->
+   
+<model-viewer id="catModel"
+  src="./cat_model.glb"
+  alt="MAX 猫头（3D）"
+  camera-controls auto-rotate ar shadow-intensity="1" exposure="0.9"
+  style="
+    display:block;
+    width:min(520px,80vw);
+    height:min(520px,60vh);
+    margin:clamp(20px,6vh,64px) auto 0;  /* 上外边距 + 水平居中 */
+    border-radius:24px; background:#fff;
+  ">
+</model-viewer>
+      </div>
+      <h1>南开猫咪图鉴</h1>
+      <p>点击任意位置进入喵星球ฅฅ</p>
+      <button class="enter-btn" id="enterBtn" aria-label="进入网站">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        进入
+      </button>
+      <p class="muted" style="margin-top:10px"></p>
+    </div>
+  </section>
+
+  <!-- 1) Hero：标题 + 橙色猫猫图片背景 -->
+  <section class="hero" id="hero" aria-label="欢迎区域">
+    <svg class="paw-bg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+   <defs>
+  <!-- 柔和毛绒感（外发光 + 轻微颗粒） -->
+  <filter id="pawSoft" x="-25%" y="-25%" width="150%" height="150%">
+    <!-- 1) 先把形状外扩一点，再做高斯模糊，得到柔光外圈 -->
+    <feMorphology in="SourceAlpha" operator="dilate" radius="1.2" result="spread"/>
+    <feGaussianBlur in="spread" stdDeviation="3.6" result="blur1"/>
+
+    <!-- 2) 轻微颗粒，让边缘不那么“塑料感”（可调 amplitude） -->
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="noise"/>
+    <feDisplacementMap in="blur1" in2="noise" scale="1.8" xChannelSelector="R" yChannelSelector="G" result="blurFuzzy"/>
+
+    <!-- 3) 把柔光染成偏暖白的光晕（alpha 可调 0.4~0.8） -->
+    <feColorMatrix in="blurFuzzy" type="matrix"
+      values="
+        0 0 0 0 1
+        0 0 0 0 0.97
+        0 0 0 0 0.92
+        0 0 0 0.65 0" result="glow"/>
+
+    <!-- 4) 叠回原图形 -->
+    <feMerge>
+      <feMergeNode in="glow"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+
+  <!-- 你的 paw 形状（保持不变） -->
+  <g id="paw">
+    <ellipse cx="50" cy="60" rx="24" ry="18" fill="currentColor"/>
+    <ellipse cx="18" cy="34" rx="7"  ry="9.5" fill="currentColor" transform="rotate(-14 18 34)"/>
+    <ellipse cx="40" cy="20" rx="8.5" ry="10.5" fill="currentColor"/>
+    <ellipse cx="60" cy="20" rx="8.5" ry="10.5" fill="currentColor"/>
+    <ellipse cx="82" cy="34" rx="7"  ry="9.5" fill="currentColor" transform="rotate(14 82 34)"/>
+  </g>
+</defs>
+      <g fill="#ff7a00" filter="url(#pawSoft)">
+
+        <use href="#paw" x="80" y="80"/>
+        <use href="#paw" x="320" y="140"/>
+        <use href="#paw" x="660" y="60"/>
+        <use href="#paw" x="960" y="100"/>
+        <use href="#paw" x="160" y="360"/>
+        <use href="#paw" x="520" y="420"/>
+        <use href="#paw" x="860" y="380"/>
+        <use href="#paw" x="60" y="660"/>
+        <use href="#paw" x="420" y="680"/>
+        <use href="#paw" x="880" y="640"/>
+      </g>
+    </svg>
+    <div class="container">
+      <h2>欢迎来到南开猫咪图鉴</h2>
+      <p class="sub">N K U e r 的 撸 猫 指 南</p>
+    </div>
+  </section>
+
+  <!-- 2) 校园明星猫：可循环 coverflow（上图 + 下文） -->
+  <section id="stars">
+    <div class="container">
+      <div class="row-head">
+  <h3 class="section-title">
+    <span class="dot"></span><span>你好，喵校友</span>
+  </h3>
+  <small class="muted auth-note">-猫猫信息经@看南门的喵 授权使用-</small>
+
+</div>
+
+      <div class="carousel">
+        <button class="arrow left" aria-label="向左" data-dir="-1">&#8592;</button>
+        <div class="carousel-viewport" id="catCarouselViewport">
+          <div class="carousel-track" id="catCarouselTrack" aria-label="明星猫画廊">
+            <!-- 示例图片，可替换为真实校园猫照片（./images/*.jpg） -->
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/大橘.png" alt="大橘" />
+                </div>
+                <div class="info">
+                  <h4>“大橘” <span class="pill">亲人</span></h4>
+                  <p>津南的元老猫猫，大橘喜欢吃ꉂ(ˊᗜˋ*)</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/发发.jpg"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“发发” <span class="pill">软萌</span></h4>
+                  <p>碰瓷讨粮,旋饭狂魔。拦路要饭的大傻子，任人蹂躏的嘤嘤怪</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/加勒比.jpg" alt="加勒比"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“加勒比” <span class="pill">巡逻喵</span></h4>
+                  <p>校友会新来的折耳三花妈妈，带着她的两个宝宝。喜欢溜达进宿舍，适应能力极其优秀</p>
+                </div>
+              </div>
+            </article>
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/塔塔.png" alt="塔塔"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“塔塔” <span class="pill">i猫</span></h4>
+                  <p>特别漂亮的小橘白，但是很有分量而且是个公猫</p>
+                </div>
+              </div>
+            </article>
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/小黑.jpg" alt="小黑"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“小黑” <span class="pill">夜巡</span></h4>
+                  <p>玄猫，自来熟，亲人乖巧从不伸爪子，偶尔进屋子溜达。一直在校友会陪伴大家。</p>
+                </div>
+              </div>
+            </article>
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/大白.jpg" alt="大白"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“大白” <span class="pill">卷王</span></h4>
+                  <p>小院的男主人，年纪大了之后脾气变得很好，偷偷卷腹的卷王!(有视频为证)</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/阿福.jpg" alt="阿福"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“阿福” <span class="pill">讨饭</span></h4>
+                  <p>黑虎阿福！和小黑吵架 阿福是奶牛！肚皮上有一撮白毛！已加入发发大白豪华要饭大军！</p>
+                </div>
+              </div>
+            </article>
+
+
+
+             <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/橘右京.jpg" alt="橘右京"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“橘右京” <span class="pill">胆小</span></h4>
+                  <p>胆小怂包,是个话痨,热衷挑事</p>
+                </div>
+              </div>
+            </article>
+
+
+             <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/Chem .png" alt="Chem"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“Chem ” <span class="pill">高冷御姐</span></h4>
+                  <p>体型较小，头上一撮黑，22年和她的三只小崽间断出现在北村一片。偶尔进学校吃饭。绝育一年之后体型再也不小了，已经成一大坨了</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/饭饭.png" alt="饭饭"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“饭饭” <span class="pill">聪明</span></h4>
+                  <p>高冷的生人勿近的小猫，非常聪明</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/哆对称.png" alt="哆对称"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“哆对称” <span class="pill">游侠</span></h4>
+                  <p>谨慎怕人，安全距离3-5米，满学校乱跑的游侠</p>
+                </div>
+              </div>
+            </article>
+
+
+             <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/马铃薯.jpg" alt="马铃薯"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“马铃薯” <span class="pill">忧郁乞丐</span></h4>
+                  <p>旋饭狂魔,碰瓷讨粮,忧郁王子，每天在马蹄湖里思考喵生</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/三二七.jpg" alt="三二七"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“三二七” <span class="pill">校霸</span></h4>
+                  <p>聪明的小狗猫，听得懂人的指令。打遍全校无敌手，曾被人带走剃光了毛再放回学校，疑似弃养，但最终还是被我们的领养人接走了</p>
+                </div>
+              </div>
+            </article>
+
+             <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/小元宵.jpg" alt="小元宵"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“小元宵” <span class="pill">校霸</span></h4>
+                  <p>三花妈妈的小猫咪之一，小小橘的兄弟。在想要小小橘的领养人得知小小橘不见了，天气转冷小元宵也很危险时，转而领养了他，过上了幸福的猫生。领养人叫他小咪啦 ~</p>
+                </div>
+              </div>
+            </article>
+
+
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/蒙牛.jpg" alt="蒙牛"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“蒙牛” <span class="pill">小怂包</span></h4>
+                  <p>生人勿近，很胆小，经常和棉花糖贴贴</p>
+                </div>
+              </div>
+            </article>
+
+             <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/汉堡.jpg" alt="汉堡"  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“蒙牛” <span class="pill">喜欢贴贴</span></h4>
+                  <p>见人就蹭,软萌好盘。比较亲人，很喜欢被摸摸头，跟占占和薯条很亲，经常亲亲蹭蹭</p>
+                </div>
+              </div>
+            </article>
+
+
+              <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/虫虫.jpg" alt="虫虫  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“虫虫” <span class="pill">话痨</span></h4>
+                  <p>非常可爱的小橘白，软软的，长大之后有点长残了</p>
+                </div>
+              </div>
+            </article>
+
+
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/土水星.jpg" alt="图水星  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“图水星” <span class="pill">见人就蹭</span></h4>
+                  <p>喜欢在图书馆晒太阳的小猫</p>
+                </div>
+              </div>
+            </article>
+
+
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/阿廖沙.jpg" alt="阿廖沙  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“阿廖沙” <span class="pill">旋饭</span></h4>
+                  <p>长得像小媒婆的漂亮长毛奶牛猫，胆小怕人</p>
+                </div>
+              </div>
+            </article>
+
+
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/图灵.jpg" alt="图灵  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“图灵” <span class="pill">喵拳出击</span></h4>
+                  <p>长得很像三花猫的长毛狸花猫，胆小但是凶巴巴</p>
+                </div>
+              </div>
+            </article>
+
+
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/霖霖.jpg" alt="霖霖  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“霖霖” <span class="pill">聪明机灵</span></h4>
+                  <p>在我们抓他兄弟虫虫的时候一直在旁边守着寸步不离，最终紧跟着进了笼子</p>
+                </div>
+              </div>
+            </article>
+
+
+             <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/灞波儿奔.jpg" alt="灞波儿奔  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“灞波儿奔” <span class="pill">生人勿扰</span></h4>
+                  <p>胆小，不常出现，黑夜觅食</p>
+                </div>
+              </div>
+            </article>
+
+
+            <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/八喜.jpg" alt="八喜  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“八喜” <span class="pill">碰瓷编制</span></h4>
+                  <p>抓船长的时候遇到八喜，他好像着急要编制，自己特别好奇直接进航空箱被关上门带走了</p>
+                </div>
+              </div>
+            </article>
+
+                        <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/海苔2.jpg" alt="海苔  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“海苔” <span class="pill">改邪归正</span></h4>
+                  <p>2023年创下过三天挠伤两个同学的记录。但是独居之后性格变得温顺了许多，很喜欢被摸摸，很喜欢自行车座垫，偶尔还是喜欢和人打着玩，不过没有敌意噢，就是想玩</p>
+                </div>
+              </div>
+            </article>
+
+                        <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/手套.jpg" alt="手套  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“手套” <span class="pill">改邪归正</span></h4>
+                  <p>胆小怕人，居无定所，经常吃不饱饭 <p>
+                       </div>
+              </div>
+            </article>
+
+
+                       <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/特仑苏.jpg" alt="特仑苏  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“特仑苏” <span class="pill">讨饭天才</span></h4>
+                  <p>非常聪明，把熟悉的人拦下来要饭，很贪吃。生病去医院上蹿下跳，过了半年医生还是念念不忘，不过现在没那么怕人了</p>
+                </div>
+              </div>
+            </article>
+
+
+                    <article class="slide">
+              <div class="cat-card">
+                <div class="img-wrap">
+                  <img src="image/菜花.jpg" alt="菜花  loading="lazy" decoding="async" width="900" height="600"/>
+                </div>
+                <div class="info">
+                  <h4>“菜花” <span class="pill">怕人</span></h4>
+                  <p>胆小怕人，熟悉后给吃的可近身，但该怕人还是怕人</p>
+                </div>
+              </div>
+            </article>
+
+
+
+            
+
+
+          </div>
+        </div>
+        <button class="arrow right" aria-label="向右" data-dir="1">&#8594;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3) 猫猫出没点：Canvas 词云 -->
+  <section id="spots">
+    <div class="container">
+      <h3 class="section-title"><span class="dot"></span><span>猫猫出没点</span></h3>
+
+      <div class="map">
+        <canvas id="wordCloud" aria-label="猫猫出没点词云"></canvas>
+      </div>
+      <div class="map-tip" id="mapTip" role="status"></div>
+    </div>
+  </section>
+
+  <!-- 4) 相处指南 / 投喂守则 / 注意事项 -->
+  <section id="guide">
+    <div class="container">
+      <h3 class="section-title"><span class="dot"></span><span>相处指南</span></h3>
+      <div class="grid cols-3">
+        <div class="card">
+          <h4>投喂守则</h4>
+          <ul class="list">
+            <li>我们鼓励大家可以进行科学的投喂和救助。</li>
+            <li>第一救助人适用于所有流浪猫，包括校内“喵校友”。</li>
+           
+            <li>建议在固定投喂点投喂。（加入猫群了解详情）</li>
+        
+          </ul>
+        </div>
+        <div class="card">
+          <h4>注意事项</h4>
+          <ul class="list">
+            <li>学校里的流浪猫都是具有攻击性的，大家尽量不要上手与他们互动。</li>
+            <li>尊重不愿互动的猫猫，使用长焦拍摄更友好。</li>
+            <li>⚠津南有抓人前科的猫：【柠檬，文科三花】【大呲花，文科橘白】【芒果，文科橘猫】【菜花，公教实验楼三花】</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>救助须知</h4>
+          <ul class="list">
+            <li>发现受伤/生病个体，联系校内/民间救助。</li>
+            <li>当您自行带任何一只流浪猫前往医院进行检查、治疗，将自动成为猫咪的第一救助人。</li>
+            
+            <li>校外猫咪并不在我们的管辖范围内，我们可以提供理论帮助和推荐领养平台，但不参与救助和送养的过程。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5) 发现新的猫咪？（投稿） | 加入我们？（组织介绍） -->
+  <section id="community">
+    <div class="container">
+      <div class="split">
+        <div>
+          <h3 class="section-title"><span class="dot"></span><span>发现新的猫咪？</span></h3>
+          <form id="reportForm" class="card" novalidate>
+            <div>
+              <label for="name">猫咪昵称</label>
+              <input class="input" id="name" name="name" required placeholder="ta的故事，从这里开始... "/>
+            </div>
+            <div>
+              <label for="traits">特征</label>
+              <input class="input" id="traits" name="traits" placeholder="花纹/性格等" />
+            </div>
+            <div>
+              <label for="place">发现地点</label>
+              <select id="place" name="place">
+                <option>中心馆</option>
+                <option>津南实验楼</option>
+                <option>津南大草原</option>
+                <option>新开湖</option>
+                <option>体育馆西门</option>
+                <option>西南门</option>
+                <option>学10B</option>
+                <option>学1宿舍</option>
+                <option>公教C</option>
+                <option>文科田径场</option>
+                <option>西区宿舍</option>
+                <option>马蹄湖</option>
+                <option>if馆</option>
+                <option>田家炳音乐厅</option>
+                <option>二主楼</option>
+                <option>西南村</option>
+                
+                
+
+
+
+
+              </select>
+            </div>
+            <div>
+              <label for="story">趣事</label>
+              <textarea id="story" name="story" placeholder="分享你与TA的相遇"></textarea>
+            </div>
+            <div>
+              <label for="photo">上传照片</label>
+              <input class="input" id="photo" name="photo" type="file" accept="image/*" />
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; margin-top:10px">
+              <button class="btn" type="submit">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                提交投稿
+              </button>
+              <span class="muted">提交后会在下方独属于你的猫猫卡片ꉂ(ˊᗜˋ*)
+              </span>
+            </div>
+          </form>
+
+          <div class="grid" id="feed" style="margin-top:16px"></div>
+        </div>
+
+        <aside>
+          <h3 class="section-title"><span class="dot"></span><span>加入我们？</span></h3>
+          <div class="card">
+            <p><b>「看南门的喵」</b> 是热爱校园流浪猫的学生自发组织，人力、财力和寄养资源都非常有限，仅能勉强保证目前校内流浪猫的基本生存。津南校区目前有记录33只猫咪活动（已知的），一个月猫粮消耗大于100斤。希望师生校友以及社会人士能参与进来，提供帮助。</p>
+            <ul class="list">
+              <li>招募方向：运营（公众号、小红书、微博）、送养、投喂、护理。</li>
+              <li>面向对象：所有热爱猫猫、愿意长期投入的同学。</li>
+              <li>加入方式：通过二维码联系负责人（见下）。</li>
+             
+            </ul>
+            <div style="display:grid; grid-template-columns:80px 1fr; gap:12px; align-items:center; margin-top:8px">
+              <!-- 占位：二维码（可替换为真实图片） -->
+            <a href="image/qrcode.jpg" target="_blank" rel="noopener" aria-label="点击查看大图便于扫码">
+  <img
+    src="image/qrcode.jpg"
+    alt="组织二维码"
+    width="80" height="80"
+    style="display:block;width:80px;height:80px;background:#fff;padding:6px;border-radius:10px;image-rendering:pixelated;"
+    loading="lazy" decoding="async" draggable="false">
+</a>
+
+
+
+
+              <div>
+               
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <button class="top-btn" id="topBtn" aria-label="返回顶部">↑</button>
+
+ <footer class="footer">
+  <div class="container">
+    <small>© <span id="year"></span> 南开猫咪图鉴 · 由 @看南门的喵 授权 · 送养、绝育与救助</small>
+
+    <p style="text-align:center; color:#888; margin-top:6px;">
+      <a href="https://www.nankai.edu.cn/" target="_blank" style="color:#888; text-decoration:none;">
+        南开大学官网
+      </a>
+    </p>
+  </div>
+</footer>
+
+
+  <script>
+    // ——— 首屏 Gate：点击进入 ——
+    (function(){
+      const gate = document.getElementById('gate');
+      const hero = document.getElementById('hero');
+      const mv = document.getElementById('catModel');
+      function enterSite(){
+        if(document.body.dataset.stage === 'main') return;
+        document.body.dataset.stage = 'main';
+        gate.classList.add('fade-out');
+        setTimeout(()=>{
+          gate.classList.add('hidden');
+          try{ hero.scrollIntoView({behavior:'smooth', block:'start'}); }catch(_){/* ignore */}
+          if(location.hash !== '#hero') location.hash = '#hero';
+        }, 420);
+      }
+      gate.addEventListener('click', enterSite, true);
+      if(mv){ mv.addEventListener('click', enterSite, {once:false}); }
+      gate.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); enterSite(); }});
+      document.addEventListener('click', ()=>{ if(document.body.dataset.stage!=='main') enterSite(); }, {capture:true});
+      window.__enterSite = enterSite;
+    })();
+
+    // ——— 进入按钮 ——
+    (function(){ const btn = document.getElementById('enterBtn'); if(btn){ btn.addEventListener('click', ()=>{ window.__enterSite && window.__enterSite(); }); } })();
+
+    // ——— 年份 ——
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // ——— 明星猫：循环 Coverflow ——
+    (function(){
+      const viewport = document.getElementById('catCarouselViewport');
+      const track = document.getElementById('catCarouselTrack');
+      if(!viewport || !track) return;
+      let slides = Array.from(track.children).filter(el=>el.classList.contains('slide'));
+      const N = slides.length; const CLONES = Math.min(3, Math.max(2, Math.ceil(N/3)));
+      const beforeFrag = document.createDocumentFragment(); const afterFrag = document.createDocumentFragment();
+      for(let i=0;i<CLONES;i++){ const b = slides[N-1-i].cloneNode(true); b.classList.add('clone'); beforeFrag.prepend(b); const a = slides[i].cloneNode(true); a.classList.add('clone'); afterFrag.appendChild(a); }
+      track.prepend(beforeFrag); track.appendChild(afterFrag);
+      slides = Array.from(track.children);
+      let current = CLONES; let tx = 0; let animating=false;
+      function centerOn(index, opts={animate:true}){
+        const el = slides[index]; if(!el) return; const target = el.offsetLeft + el.offsetWidth/2 - viewport.clientWidth/2; const newTx = -target;
+        track.style.transition = opts.animate? 'transform 420ms cubic-bezier(.22,.61,.36,1)' : 'none'; tx = newTx; track.style.transform = `translateX(${newTx}px)`; updateDepth(); }
+      function updateDepth(){ slides.forEach((s,i)=>{ const d = i - current; const ad = Math.abs(d);
+        const base = 1 - Math.min(ad*0.08, .32);
+        const scale = d===0 ? base * 1.12 : base; // 中心卡额外 12%
+        s.style.transform = `scale(${scale})`;
+        s.style.zIndex = String(100 - ad);
+        s.classList.toggle('is-center', d===0);
+        s.style.filter = d===0 ? 'drop-shadow(0 14px 28px rgba(255,122,0,.18))' : 'none';
+        const card = s.querySelector('.cat-card'); if(card){ card.style.setProperty('--rx','0deg'); card.style.setProperty('--ry','0deg'); card.style.setProperty('--ty','0px'); } }); }
+      function normalize(){ if(current < CLONES){ current += N; centerOn(current, {animate:false}); } else if(current >= CLONES+N){ current -= N; centerOn(current, {animate:false}); } }
+      function goTo(step){ if(animating) return; animating=true; current += step; centerOn(current, {animate:true}); setTimeout(()=>{ normalize(); animating=false; }, 460); }
+      document.querySelector('#stars .arrow.left')?.addEventListener('click', ()=>goTo(-1));
+      document.querySelector('#stars .arrow.right')?.addEventListener('click', ()=>goTo(1));
+      let isDown=false, startX=0, startTx=0;
+      viewport.addEventListener('pointerdown', (e)=>{ isDown=true; startX=e.clientX; startTx=tx; track.style.transition='none'; viewport.setPointerCapture(e.pointerId); });
+      viewport.addEventListener('pointermove', (e)=>{ if(!isDown) return; const dx=e.clientX - startX; tx = startTx + dx; track.style.transform = `translateX(${tx}px)`; });
+      ['pointerup','pointercancel','mouseleave'].forEach(ev=> viewport.addEventListener(ev, (e)=>{ if(!isDown) return; isDown=false; const dx=(e.clientX??startX)-startX; if(Math.abs(dx)>60){ goTo(dx<0?1:-1); } else { centerOn(current,{animate:true}); } }));
+      viewport.addEventListener('pointermove', (e)=>{ if(isDown) return; const rect = viewport.getBoundingClientRect(); const x = (e.clientX - rect.left)/rect.width - 0.5; const y = (e.clientY - rect.top)/rect.height - 0.5; const card = slides[current]?.querySelector('.cat-card'); if(card){ card.style.setProperty('--ry', (x*6).toFixed(2) + 'deg'); card.style.setProperty('--rx', (-y*4).toFixed(2) + 'deg'); card.style.setProperty('--ty', (-2 - y*4).toFixed(2) + 'px'); }});
+      viewport.addEventListener('pointerleave', ()=>{ const card = slides[current]?.querySelector('.cat-card'); if(card){ card.style.setProperty('--ry','0deg'); card.style.setProperty('--rx','0deg'); card.style.setProperty('--ty','0px'); } });
+      window.addEventListener('resize', ()=> centerOn(current, {animate:false}));
+      centerOn(current, {animate:false});
+      window.__catCarousel = { next:()=>goTo(1), prev:()=>goTo(-1), index:()=>current-CLONES, total:N };
+    })();
+
+    // ——— 出没点：Canvas 词云（中心盒子 + 自适应密度 + 准确点击区域） ——
+    (function(){
+      const canvas = document.getElementById('wordCloud'); if(!canvas) return; const tip = document.getElementById('mapTip');
+      const ctx = canvas.getContext('2d'); let DPR = Math.max(1, Math.min(window.devicePixelRatio||1, 2));
+      const palette = ['#ff8a33','#ffb26b','#ffcf99','#c084fc','#60a5fa','#f472b6','#34d399','#f59e0b','#9ca3af'];
+      // 把词云限制在画布中部的“中心盒子”，避免贴边：
+     const CENTER_BOX = { ratioX: 0.58, ratioY: 0.74 }; // 宽度占画布 64%，高度 82%
+
+      const words = [
+  {text:'二主楼',       w:7, hint:'晨昏都能遇见的地标', ux:0.62, uy:0.52},
+  {text:'中心馆',       w:7, hint:'阅览室外的晒太阳点', ux:0.38, uy:0.52},
+
+  {text:'新开湖',       w:6, hint:'湖畔的午觉位',       ux:0.58, uy:0.28},
+  {text:'田家炳音乐厅', w:6, hint:'咪也喜欢听音乐',     ux:0.50, uy:0.70},
+  {text:'学1宿舍',      w:6, hint:'傍晚在出入通道打滚', ux:0.26, uy:0.46},
+
+  {text:'马蹄湖',       w:5, hint:'夏日纳凉处',         ux:0.48, uy:0.38},
+  {text:'西南门',       w:5, hint:'进出校园的猫道',     ux:0.66, uy:0.40},
+  {text:'理科楼',       w:5, hint:'科研喵出没',         ux:0.72, uy:0.50},
+  {text:'公教C',        w:5, hint:'人，你也来上课吗',   ux:0.74, uy:0.62},
+
+  {text:'体育馆西门',   w:4, hint:'冬日取暖口',         ux:0.68, uy:0.60},
+  {text:'津南大草原',   w:4, hint:'最爱翻滚的地方',     ux:0.68, uy:0.34},
+  {text:'津南实验楼',   w:4, hint:'爱心补给点',         ux:0.38, uy:0.66},
+
+  {text:'if馆',         w:3, hint:'教室外的好奇目光',   ux:0.84, uy:0.50},
+  {text:'学10B',        w:3, hint:'夜巡投喂点',         ux:0.36, uy:0.36},
+  {text:'文科田径场',   w:3, hint:'远观人类游戏',       ux:0.62, uy:0.72},
+  {text:'操场看台',     w:3, hint:'日落打卡点',         ux:0.30, uy:0.30},
+  {text:'小树林',       w:3, hint:'回应呼唤的地方',     ux:0.58, uy:0.80},
+  {text:'西区宿舍',     w:3, hint:'宿舍区常客',         ux:0.82, uy:0.32},
+  {text:'西南村',       w:3, hint:'草丛伏击区',         ux:0.24, uy:0.70}
+];
+
+      let items = []; let hovered = -1; let needsRedraw = true; let G = 1; // 全局缩放（用于防拥挤）
+      function resize(){ const rect = canvas.getBoundingClientRect(); const W = Math.max(340, rect.width|0); const H = Math.max(320, (rect.height|0) || 420); canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR); layout(); markRedraw(); }
+
+      // 布局：中心盒子内的椭圆环 + 居中校正 + 自适应缩放
+      function layout(){ items = []; const fullCx = canvas.width/2; const fullCy = canvas.height/2; const boxW = canvas.width*CENTER_BOX.ratioX; const boxH = canvas.height*CENTER_BOX.ratioY; const cx = fullCx; const cy = fullCy; const sorted = [...words].sort((a,b)=>b.w-a.w);
+        const sized = sorted.map((w)=>{ const sizePx = 18 + (52-18)*(w.w/7); const size = (sizePx)*DPR; ctx.font = `700 ${size}px 'Noto Sans SC', system-ui`; const width = ctx.measureText(w.text).width; const height = size*1.15; return {text:w.text, hint:w.hint, size, w:width, h:height}; });
+        const N = sized.length; const centerCount = Math.min(2, N);
+        const margin = 28*DPR; const rxBase = boxW/2 - margin; const ryBase = boxH/2 - margin; // 只在中心盒子里铺
+        const rx = [0, rxBase*0.42, rxBase*0.7, rxBase*0.92];
+        const ry = [0, ryBase*0.42, ryBase*0.7, ryBase*0.92];
+        const counts = [centerCount, 0, 0, 0];
+        const remain = N - centerCount; counts[1] = Math.min(Math.max(6, Math.ceil(remain*0.35)), remain);
+        counts[2] = Math.min(Math.max(7, Math.ceil((remain-counts[1])*0.55)), remain-counts[1]);
+        counts[3] = Math.max(0, remain - counts[1] - counts[2]);
+        const placed = [];
+        let idx = 0;
+        for(let i=0;i<centerCount;i++){
+          const it = sized[idx++]; const gap = 22*DPR; let x, y; if(centerCount===1){ x = cx - it.w/2; y = cy - it.h/2; } else { const left = sized[0], right = sized[1]; const total = left.w + right.w + gap; const startX = cx - total/2; x = (i===0? startX : startX + left.w + gap); y = cy - Math.max(left.h, right.h)/2; }
+          it.x = x; it.y = y; it.color = palette[i % palette.length]; it.scale=1; it.target=1; items.push(it); placed.push({x:it.x, y:it.y, w:it.w, h:it.h});
+        }
+        function placeRing(ringIndex){ const count = counts[ringIndex]; let rxi = rx[ringIndex]; let ryi = ry[ringIndex]; const start = idx; const TWO=Math.PI*2; let base = -Math.PI/2; for(let k=0;k<count;k++){ const it = sized[idx++]; let theta = base + TWO*k/count + (Math.random()-0.5)*0.25; let tries=0; const pad=10*DPR; let x, y; while(tries<900){ x = cx + Math.cos(theta)*rxi - it.w/2; y = cy + Math.sin(theta)*ryi - it.h/2; let ok = (x>fullCx-boxW/2+margin && y>fullCy-boxH/2+margin && x+it.w<fullCx+boxW/2-margin && y+it.h<fullCy+boxH/2-margin); if(ok){ for(const b of placed){ if(!(x+it.w+pad<b.x || x>b.x+b.w+pad || y+it.h+pad<b.y || y>b.y+b.h+pad)){ ok=false; break; } } }
+            if(ok){ break; } theta += 0.06; if(theta>base+TWO){ theta -= TWO; rxi += 4*DPR; ryi += 2*DPR; } tries++; }
+          it.x=x; it.y=y; it.color = palette[(start+k) % palette.length]; it.scale=1; it.target=1; items.push(it); placed.push({x:it.x, y:it.y, w:it.w, h:it.h}); }
+        }
+        placeRing(1); placeRing(2); placeRing(3);
+
+        // 居中（其实已经围绕 cx/cy 排布，但再做一次包围盒校正更稳）
+        const bbox = getBBox(items); const boxCx = (bbox.minX+bbox.maxX)/2; const boxCy = (bbox.minY+bbox.maxY)/2; const dx = cx - boxCx; const dy = cy - boxCy; items.forEach(it=>{ it.x += dx; it.y += dy; });
+
+        // 自适应缩放，保持密度
+        const aw = boxW - margin*2; const ah = boxH - margin*2; const bw = (bbox.maxX - bbox.minX); const bh = (bbox.maxY - bbox.minY); G = Math.min(1, Math.min(aw/Math.max(1,bw), ah/Math.max(1,bh)));
+      }
+
+      function getBBox(arr){ let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity; arr.forEach(it=>{ minX=Math.min(minX,it.x); minY=Math.min(minY,it.y); maxX=Math.max(maxX,it.x+it.w); maxY=Math.max(maxY,it.y+it.h); }); return {minX,minY,maxX,maxY}; }
+
+      function draw(){ if(!needsRedraw) return; needsRedraw=false; ctx.clearRect(0,0,canvas.width,canvas.height); items.forEach(it=>{ ctx.save(); const cx = it.x+it.w/2, cy = it.y+it.h/2; ctx.translate(cx, cy); ctx.scale(it.scale*G, it.scale*G); ctx.font = `700 ${it.size}px 'Noto Sans SC', system-ui`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.shadowColor='rgba(255,255,255,0.9)'; ctx.shadowBlur=6*DPR; ctx.fillStyle = it.color; ctx.fillText(it.text, 0, 0); ctx.restore(); }); }
+      function tick(){ let anim=false; for(const it of items){ const diff = it.target - it.scale; if(Math.abs(diff)>0.001){ it.scale += diff*0.18; anim=true; } } if(anim){ markRedraw(); } draw(); requestAnimationFrame(tick); }
+      function markRedraw(){ needsRedraw=true; }
+      function pick(px,py){ for(let i=items.length-1;i>=0;i--){ const it=items[i]; const s=(it.scale||1)*G; const w=it.w*s, h=it.h*s; const cx=it.x+it.w/2, cy=it.y+it.h/2; const x=cx-w/2, y=cy-h/2; if(px>x && px<x+w && py>y && py<y+h){ return i; } } return -1; }
+      function getPointFromEvent(e){ const t = e.touches? e.touches[0] : e; return {x:t.clientX, y:t.clientY}; }
+      function onMove(e){ const {x,y} = getPointFromEvent(e); const rect = canvas.getBoundingClientRect(); const px = (x-rect.left)*DPR; const py = (y-rect.top)*DPR; const i = pick(px,py); if(i!==hovered){ hovered=i; items.forEach((it,idx)=> it.target = (idx===i?1.12:1)); markRedraw(); } }
+      function onLeave(){ hovered=-1; items.forEach(it=> it.target=1); markRedraw(); }
+      function onClick(e){ const {x,y} = getPointFromEvent(e); const rect = canvas.getBoundingClientRect(); const px = (x-rect.left)*DPR; const py = (y-rect.top)*DPR; const i = pick(px,py); if(i>=0){ const it = items[i]; showToast(`你查看了「${it.text}」`); if(tip){ tip.innerHTML = `<b>📍 ${it.text}</b><div class="muted" style="margin-top:4px">${it.hint||''}</div>`; tip.style.display='block'; } } }
+      canvas.addEventListener('pointermove', onMove); canvas.addEventListener('pointerleave', onLeave); canvas.addEventListener('pointerdown', onClick);
+      canvas.addEventListener('touchstart', (e)=>{ onMove(e); onClick(e); }, {passive:true});
+      window.addEventListener('resize', resize);
+      // 容器尺寸变化也触发重排（防首屏测量误差）
+      new ResizeObserver(resize).observe(canvas);
+      resize(); draw(); tick();
+      window.__wordCloud = { items, getScale:()=>G };
+    })();
+
+    // ——— 投稿：本地预览卡 ——
+    (function(){
+      const form = document.getElementById('reportForm');
+      const feed = document.getElementById('feed');
+      form.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const fd = new FormData(form);
+        const name = (fd.get('name')||'').toString().trim();
+        if(!name){ form.querySelector('#name').focus(); showToast('请填写猫咪昵称'); return; }
+        const traits = (fd.get('traits')||'').toString();
+        const place = (fd.get('place')||'').toString();
+        const story = (fd.get('story')||'').toString();
+        const file = fd.get('photo');
+        let imgURL = 'https://placekitten.com/420/280';
+        if(file && file.size){ imgURL = await toDataURL(file); }
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div style="display:grid; grid-template-columns:160px 1fr; gap:12px; align-items:center">
+            <img src="${imgURL}" alt="${name}" style="width:160px; height:120px; object-fit:cover; border-radius:12px"/>
+            <div>
+              <h4 style="margin:0 0 6px">${name} <span class="pill">${place}</span></h4>
+              <p style="margin:0 0 6px" class="muted">特征：${traits||'—'}</p>
+              <p style="margin:0">${story || '（这位同学还没有写趣事~）'}</p>
+            </div>
+          </div>`;
+        feed.prepend(card);
+        form.reset();
+        showToast('已生成本地预览卡片 ✅');
+      });
+      function toDataURL(file){
+        return new Promise((resolve)=>{ const reader = new FileReader(); reader.onload=()=>resolve(reader.result); reader.readAsDataURL(file); });
+      }
+    })();
+
+    // ——— 返回顶部 ——
+    document.getElementById('topBtn').addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
+
+    // ——— 轻量 toast ——
+    const toast = document.getElementById('toast');
+    function showToast(msg){ toast.textContent = msg; toast.classList.add('show'); setTimeout(()=> toast.classList.remove('show'), 1600); }
+
+    // ——— 简易自测（仅在 ?test=1 时执行）——
+    (function(){
+      if(!location.search.includes('test=1')) return;
+      const results = []; const ok = (cond, msg)=>{ results.push((cond? '✅':'❌') + ' ' + msg); };
+      try{ ok(typeof window.__enterSite === 'function', '__enterSite 可用'); }catch(e){ ok(false, '__enterSite 未定义'); }
+      ok(document.body.dataset.stage === 'gate', '初始阶段为 gate');
+      ok(!!document.getElementById('gate'), '存在 Gate 首屏');
+      ok(!!document.getElementById('enterBtn'), '存在进入按钮');
+      ok(!!document.getElementById('catModel'), '存在 3D 模型元素');
+
+      // 轮播基础结构
+      ok(!!document.getElementById('catCarouselViewport'), '存在明星猫轮播 viewport');
+      ok(!!document.getElementById('catCarouselTrack'), '存在明星猫轮播 track');
+
+      // 词云存在
+      const wc = document.getElementById('wordCloud'); ok(!!wc, '存在词云 Canvas');
+
+      try{ if(typeof window.__enterSite==='function') window.__enterSite(); }catch(e){ ok(false, '调用 __enterSite 抛错: ' + e.message); }
+      setTimeout(()=>{
+        ok(document.body.dataset.stage === 'main', '进入后阶段为 main');
+        ok(document.getElementById('gate').classList.contains('hidden'), '进入后首屏已隐藏');
+        ok(document.querySelector('#catCarouselTrack .slide.is-center')!=null, '轮播存在居中卡片');
+        const tf = getComputedStyle(document.getElementById('catCarouselTrack')).transform; ok(!!tf && tf.includes('matrix'), '轨道有 transform 矩阵');
+        // —— 词云布局质量校验 ——
+        if(window.__wordCloud && window.__wordCloud.items){
+          const items = window.__wordCloud.items; const W = wc.width, H = wc.height; const cx=W/2, cy=H/2; let sx=0, sy=0; let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity; items.forEach(it=>{ const x=it.x, y=it.y; sx += x + it.w/2; sy += y + it.h/2; minX=Math.min(minX,x); maxX=Math.max(maxX,x+it.w); minY=Math.min(minY,y); maxY=Math.max(maxY,y+it.h); }); sx/=items.length; sy/=items.length; ok(Math.abs(sx-cx) < W*0.12 && Math.abs(sy-cy) < H*0.12, '词云质心接近中心');
+          const leftMargin = minX, rightMargin = W - maxX; ok(Math.abs(leftMargin-rightMargin) < W*0.2, '左右留白基本对称');
+        }
+        const pre = document.createElement('pre'); pre.id = 'test-report'; pre.style.cssText = 'position:fixed;left:12px;top:12px;background:#111;color:#fff;padding:10px 12px;border-radius:10px;z-index:9999;max-width:80vw;max-height:60vh;overflow:auto;opacity:.9;'; pre.textContent = ['[Smoke Tests]', ...results].join('\n'); document.body.appendChild(pre); console.log('\n' + results.join('\n'));
+      }, 900);
+    })();
+  </script>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+</body>
+</html>

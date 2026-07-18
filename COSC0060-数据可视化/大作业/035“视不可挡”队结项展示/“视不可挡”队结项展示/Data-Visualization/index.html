@@ -1,0 +1,475 @@
+<!-- Chosen Palette: EdTech Dark Mode (Deep Navy Background, Cyan/Electric Blue Accents, White Text) -->
+<!-- Application Structure Plan: 
+    The application follows a standard Dashboard layout (3-Column Grid) as requested:
+    1.  **Left Column (Admin/Management):** Contains placeholders for 'Question Analysis', 'Teaching Overview', and 'Learning Methods'. These are styled containers ready for teammate integration.
+    2.  **Middle Column (Class Analysis):** The central focal point. Contains a large upper section for 'Knowledge Point Mastery' (Knowledge Tree) and a lower section split for 'Class Composition' and 'Student Ranking'. These are styled containers.
+    3.  **Right Column (Student Query):** FULLY IMPLEMENTED. 
+        -   **Interaction:** A "Student Selector" at the top acts as the primary filter.
+        -   **Visuals:** -   Score Trend (Line Chart): Shows performance over time.
+            -   Weakness Analysis (Radar Chart): Highlights subject/knowledge point deficits.
+            -   Exercise Time Analysis (Bar Chart): Shows study habits/time distribution.
+    
+    Why this structure?
+    It strictly adheres to the provided wireframes (`image_cd3bdf.png`) and the "Command Center" aesthetic (`image_cd4ae3.jpg`). It separates concerns (Admin vs. Class vs. Individual) while keeping all data visible at a glance. The layout is fluid but fixed to the viewport height to simulate a monitoring station.
+-->
+<!-- Visualization & Content Choices:
+    -   **Right Column (Student Query):**
+        -   *Score Trend:* Line Chart. Best for showing progress over exams/time.
+        -   *Weakness Analysis:* Radar Chart. Standard for comparing multi-variate skill levels (e.g., Math vs. Physics vs. Chem) to identify gaps.
+        -   *Exercise Time:* Bar Chart. Clear comparison of hours spent per day/week.
+    -   **Library:** Chart.js (Canvas) used for all charts. Responsive and performant.
+    -   **Layout:** Tailwind CSS Grid (12 columns). Left (3), Middle (6), Right (3). Flexbox used for vertical distribution within columns.
+-->
+<!-- CONFIRMATION: NO SVG graphics used (except text/font icons). NO Mermaid JS used. -->
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智学云 - 教育数据可视化看板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="./d3.v7.js"></script>
+    <style>
+/* 光标 */
+      /* html, body, * { cursor: none !important; }
+
+  #cursor-dot, #cursor-ring{
+    position: fixed;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 999999;
+    transform: translate3d(-9999px, -9999px, 0);
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  /* 中心光点（很克制） */
+  #cursor-dot{
+    width: 6px; height: 6px;
+    border-radius: 999px;
+    background: rgba(56,189,248,0.95); /* #38bdf8 */
+    box-shadow: 0 0 10px rgba(56,189,248,0.35);
+  }
+
+ 
+
+  /* hover 在可点击元素上：轻微放大 + 稍微偏暖 */
+  .cursor-hover #cursor-ring{
+    width: 34px; height: 34px;
+    border-color: rgba(249,115,22,0.40);
+    box-shadow: 0 0 16px rgba(249,115,22,0.18);
+  }
+
+  /* 点击：轻微缩放反馈 */
+  .cursor-click #cursor-ring{
+    transform: translate3d(var(--ring-x, -9999px), var(--ring-y, -9999px), 0) scale(0.92);
+  }
+
+  /* 触屏/减少动态：直接不显示自定义光标 */
+  @media (pointer: coarse), (prefers-reduced-motion: reduce){
+    html, body, * { cursor: auto !important; }
+    #cursor-dot, #cursor-ring { display: none !important; }
+  }
+ 
+
+
+
+
+
+        /* Custom scrollbar for a cleaner dashboard look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155; 
+        }
+
+        /* Glassmorphism panel style */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Neon glow text */
+        .neon-text {
+            text-shadow: 0 0 5px rgba(56, 189, 248, 0.5);
+        }
+
+        /* Grid Background Pattern */
+        .bg-grid-pattern {
+            background-image: linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* Ensure chart containers don't overflow */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 0; /* Critical for flex child scrolling/sizing */
+        }
+
+label {
+            margin-right: 8px;
+            color: rgba(7, 18, 34, 0.7);
+        }
+
+        select {
+          padding: 6px 12px;
+          border-radius: 6px;
+
+          background-color: #0f172a;   /* 深色背景 */
+          color: #e5e7eb;              /* 文字颜色 */
+          font-size: 16px;             /* 字体大小 */
+
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          margin-bottom: 16px;
+        }
+
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dashboard: {
+                            bg: '#020617', // Very dark blue/black
+                            panel: '#0f172a',
+                            accent: '#38bdf8', // Sky blue
+                            success: '#22c55e',
+                            warning: '#eab308',
+                            danger: '#ef4444'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-dashboard-bg text-white h-screen overflow-hidden font-sans bg-grid-pattern flex flex-col">
+
+    <!-- HEADER -->
+    <header class="h-16 flex items-center justify-between px-6 border-b border-gray-800 bg-opacity-90 bg-dashboard-bg z-10 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded bg-dashboard-accent flex items-center justify-center text-dashboard-bg font-bold text-xl">Z</div>
+            <h1 class="text-2xl font-bold tracking-wider neon-text">智学云 <span class="text-sm font-normal text-gray-400 ml-2">教学质量监测与分析平台</span></h1>
+        </div>
+        <div class="flex items-center gap-4 text-sm text-gray-400">
+           
+
+           <div class="inline-flex bg-[#0b1220] border border-white/40 rounded h-10 px-3 items-center gap-3">
+  <div class="flex items-center gap-2">
+    <label for="classSelector" class="text-base font-bold text-white whitespace-nowrap">
+      班级
+    </label>
+    <select
+      id="classSelector"
+      class="w-40 h-9 px-2 rounded bg-[#0b1220] text-white text-base font-semibold border border-white/40
+             focus:outline-none focus:ring-1 focus:ring-white/60"
+    >
+      <option value="">请选择班级</option>
+    </select>
+  </div>
+
+  <div class="w-px h-4 bg-white/40"></div>
+
+  <div class="flex items-center gap-2">
+    <label for="studentSelector" class="text-base font-bold text-white whitespace-nowrap">
+      学生
+    </label>
+    <select
+      id="studentSelector"
+      class="w-40 h-9 px-2 rounded bg-[#0b1220] text-white text-base font-semibold border border-white/40
+             focus:outline-none focus:ring-1 focus:ring-white/60"
+    >
+      <option value="">请选择学生</option>
+    </select>
+  </div>
+</div>
+
+
+
+
+
+        </div>
+    </header>
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- MAIN CONTENT GRID -->
+    <!-- 
+         Layout Logic: 
+         - Grid-cols-12 for precise column width control.
+         - Gap-4 for spacing.
+         - Flex-1 and h-full to occupy remaining screen height minus header.
+    -->
+    <main class="flex-1 p-4 grid grid-cols-12 gap-4 h-full min-h-0">
+
+        <!-- ========================================== -->
+        <!-- （一）LEFT COLUMN: ADMIN / BACKEND MANAGEMENT -->
+        <!-- ========================================== -->
+        
+
+
+<!-- ========================================== -->
+<!-- （二）MIDDLE COLUMN: CLASS / STUDENT ANALYSIS -->
+<!-- ========================================== -->
+<section class="col-span-12 md:col-span-6 flex flex-col gap-2 h-full min-h-0">
+
+  <!-- 整个中间区域的大容器 -->
+  <div id="middle-student-section"
+       class="glass-panel rounded-lg p-4 flex flex-col gap-2 flex-1 min-h-0">
+
+   
+      
+      <div class="col-span-9 border glass-panel  rounded-lg flex items-center justify-center">
+        <svg width="60%" id="knowledge-tree"></svg>
+        
+      </div>
+
+      
+
+
+       
+     
+    </div>
+
+
+
+     
+
+
+    <!-- 下面：时间滑块（同时控制上面两个词云） -->
+      <div class="glass-panel border-gray-800  border rounded-lg px-3 py-2">
+        <div class="flex items-center justify-between mb-1">
+          <!-- <span class="text-[11px] text-gray-400">时间过滤</span> -->
+          <span id="wordcloud-timeDisplay" class="text-[11px] text-gray-200">
+            <!-- 这里的内容由 JS 动态填充 -->
+          </span>
+        </div>
+
+        <!-- 滑轨 -->
+        <div id="wordcloud-slider-track" class="glass-panel rounded-lg relative h-2 rounded bg-gray-800 mt-1">
+          <!-- 选中范围条 -->
+          <div
+            id="wordcloud-slider-range"
+            class="absolute h-2 rounded bg-dashboard-accent/60">
+          </div>
+
+          <!-- 左滑块 -->
+          <div
+            id="wordcloud-minThumb"
+            class="absolute -top-1 h-4 w-4 rounded-full bg-white border border-dashboard-accent cursor-pointer shadow -translate-x-1/2">
+          </div>
+
+          <!-- 右滑块 -->
+          <div
+            id="wordcloud-maxThumb"
+            class="absolute -top-1 h-4 w-4 rounded-full bg-white border border-dashboard-accent cursor-pointer shadow -translate-x-1/2">
+          </div>
+        </div>
+      </div>
+
+
+
+    <!-- 第二行：词云 -->
+     
+<div class="space-y-3">
+  <div class=" grid grid-cols-12 gap-2">
+    <!-- 合成后的大容器 -->
+    <div class=" col-span-12 glass-panel border-gray-800 border rounded-lg p-3
+            flex flex-col h-[330px]">
+  <div class="glass-panel rounded-lg flex-1 flex flex-row gap-2">
+    <svg id="wordcloud-knowledge" class="block w-1/3 h-full" preserveAspectRatio="xMidYMid meet"></svg>
+    <svg id="wordcloud-subknowledge" class="block w-2/3 h-full" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+</div>
+  </div>
+</div>
+
+
+
+</section>
+
+
+
+<section class="col-span-12 md:col-span-3 flex flex-col gap-4 h-full min-h-0">
+
+          <div class="glass-panel rounded-lg p-3 flex flex-col gap-2 flex-1 min-h-0">
+            <!-- Header for Section
+            <div class="text-dashboard-accent font-semibold uppercase tracking-widest text-xs border-b border-gray-700 pb-1">
+                后台管理 (Admin)
+            </div> -->
+
+            <!-- Module 1: Question Analysis -->
+           <!-- Module 1：上面更长（3份），basis-0 强制按比例分配 -->
+<div id="admin-question-container"
+     class="glass-panel rounded-lg p-2 flex-[4_1_0%] min-h-0 flex flex-col">
+  <svg id="class-ranking" class="block w-full flex-1 min-h-0"></svg>
+</div>
+
+<!-- Module 2：下面更短（1份），同样 basis-0 -->
+<div id="admin-teaching-container"
+     class="glass-panel rounded-lg p-4 flex-[3_1_0%] min-h-0 flex flex-col relative group text-gray-300 whitespace-nowrap">
+  <div class="shrink-0">
+    <label for="questionSelector"></label>
+    <select id="questionSelector">
+      <option value="">请选择题目编号</option>
+    </select>
+  </div>
+
+  <!-- 让下面的 svg 也吃满剩余高度，否则它会按内容高度撑不起来 -->
+  <svg id="admin_chart_1" class="block w-full flex-1 min-h-0"></svg>
+</div>
+
+                 
+ 
+                
+
+            
+   
+          
+        </section>
+        
+                        <!-- ========================================== -->
+                        <!-- （三）RIGHT COLUMN: STUDENT QUERY -->
+                        <!-- ========================================== -->
+                        <section class="col-span-12 md:col-span-3 flex flex-col gap-2 h-full min-h-0">
+                            <!-- 标题行
+                            <div class="text-dashboard-accent font-semibold uppercase tracking-widest text-xs border-b border-gray-700 pb-1 flex justify-between items-center">
+                                <span>学生查询 (Student Query)</span>
+                                <span class="w-2 h-2 rounded-full bg-dashboard-accent"></span>
+                            </div> -->
+
+                            <!-- 右侧整体容器：不再滚动，自适应填满 -->
+                            <div class="glass-panel rounded-lg p-3 flex flex-col gap-2 flex-1 min-h-0">
+
+                            
+
+                                
+                                <div class="flex flex-col gap-2 flex-1 min-h-0">
+                                    <div class="glass-panel rounded-lg p-3 border  shadow-lg flex flex-col h-[250px] flex-none">
+ 
+  <div class="flex-1 min-h-0 rounded-lg flex items-center justify-center">
+    <canvas id="radarChart" class="w-full h-full"></canvas>
+  </div>
+</div>
+
+                                    <!-- 2. 学习者答题高峰时段 -->
+                                    <div class="glass-panel rounded-lg border  shadow-lg flex flex-col flex-1 min-h-0 pt-2 pb-1 px-2">
+                                      
+
+                                      <!-- 这里放你刚刚接入 student-profile.js 的两个 svg -->
+                                      <div class="flex-1 min-h-0 flex flex-col gap-0">
+                                    <!-- 上：极坐标 -->
+                                    <svg id="zyz_2_hourly-svg"
+                                        width="100%"   height="140%"
+                                        class="block"></svg>
+
+                                    <!-- 下：日历 -->
+                                    <svg id="zyz_2_calendar-svg"
+                                        width="100%"   height="70%"
+                                        class="block"></svg>
+                                    </div>
+
+                                    </div>
+                                  </div>
+
+
+                                </div>
+                            </div>
+                        </section>
+    </main>
+
+
+
+
+
+ 
+
+
+
+
+
+
+<!-- 赵宇哲右侧 -->
+<!-- 答题时段模块的 tooltip ["zyz_2_viz-tooltip"]-->
+<div
+  id="zyz_2_viz-tooltip"
+  class="pointer-events-none fixed z-50 px-2 py-1 text-[11px] rounded bg-slate-900/90 border border-cyan-400/60 text-gray-100 shadow-lg"
+  style="opacity:0;"
+></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+<!-- js引入 -->
+
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-cloud/build/d3.layout.cloud.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="./d3.v7.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+
+
+
+
+
+<!-- 赵宇哲 -->
+    <!-- 引入 mian.js 和 Chart.js 和 radar.js -->
+    <script type="module" src="./main.js"></script>
+    <script type="module" src="./student-profile.js"></script>
+
+<!-- 王奕瑜 -->
+    <script type="module" src="./class-profile.js"></script>
+    <script type="module" src="./class-submit-wordcloud.js"></script>
+    <script type="module" src="./knowledge-tree.js"></script>
+    <script type="module" src="./class-ranking.js"></script>
+
+<!-- 袁煜杰 -->    
+    <script type="module" src="./admin_Chart_1.js"></script>
+   
+
+
+
+
+
+</body>
+</html>
